@@ -9,13 +9,9 @@ debate = blob.download_as_string()
 
 #regex debate to usable format
 without_brackets = re.sub(r'\((.*?)\)', ' ', debate)
-#split_for_speaker = re.split("([A-Z][A-Z]+)", without_brackets) #doesnt wrk becouse of NBC, VAT
 split_for_speaker = re.split(r'(TRUMP: |CLINTON: |WALLACE: )', without_brackets) 
-#https://regexper.com/#%5BA-Z%5D%5BA-Z%5D%2B
-
 
 language_client = language.Client()
-
 
 #connect to BQ
 bigquery_client = bigquery.Client(project='serge-playground')
@@ -47,13 +43,12 @@ table_sentiment_paragraph = dataset.table('table_sentiment_paragraph', schema=[p
 table_sentiment_sentence = dataset.table('table_sentiment_sentence', schema=[paragraph_id, name, sentence, sentence_id, sentiment_polarity, sentiment_magnitude])
 table_entity = dataset.table('table_entity', schema=[paragraph_id, name, entity_name, entity_type, entity_salience, entity_wiki])
 
-#table_token.create() 
-#table_sentiment_paragraph.create() 
-#table_sentiment_sentence.create() 
-#table_entity.create() 
+table_token.create() 
+table_sentiment_paragraph.create() 
+table_sentiment_sentence.create() 
+table_entity.create() 
 
 #insert debate into BQ
-
 for x in range(1, len(split_for_speaker), 2):
 
 	print(x)
@@ -91,23 +86,3 @@ for x in range(1, len(split_for_speaker), 2):
 	if len(rows_to_insert_in_table_entity)>0:
 		table_entity.insert_data(rows_to_insert_in_table_entity)
 
-
-"""
-table_token = open("table_token.csv",'wb')
-wr = csv.writer(table_token, dialect='excel')
-for row in rows_to_insert_in_table_token:
-    wr.writerow(row)
-"""
-	
-
-"""https://cloud.google.com/natural-language/reference/rest/v1beta1/documents/annotateText#Token
-SELECT * FROM [serge-playground:election_nlp.initial_test3] ORDER BY id LIMIT 1000 
-SELECT name, AVG(LENGTH(paragraph)) FROM [serge-playground:election_nlp.initial_test] GROUP BY name
-SELECT name, NTH(50, QUANTILES(LENGTH(paragraph), 101)) FROM [serge-playground:election_nlp.initial_test3] GROUP BY name
-http://stackoverflow.com/questions/29092758/how-to-calculate-median-of-a-numeric-sequence-in-google-bigquery-efficiently
-SELECT * FROM [serge-playground:election_nlp.initial_test3] WHERE name = 'CLINTON: ' ORDER BY id 
-
-SELECT token_part_of_speach, COUNT(id) FROM [serge-playground:election_nlp.table_token] WHERE name='CLINTON: ' GROUP BY token_part_of_speach
-SELECT token_text, COUNT(id) as count FROM [serge-playground:election_nlp.table_token] WHERE name='CLINTON: ' AND token_part_of_speach='NOUN' GROUP BY token_text ORDER BY count DESC
-
-"""
